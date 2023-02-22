@@ -38,3 +38,23 @@ def lambda_handler(event, context):
     bucket.put_object(Key='<your-object-key>.avro', Body=buffer.getvalue())
 
     return "Success"
+import os
+import pandas_gbq
+import boto3
+
+# Set up credentials and permissions
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/path/to/credentials.json"
+s3 = boto3.client("s3")
+
+# Query BigQuery table and convert to DataFrame
+query = "SELECT * FROM my_dataset.my_table"
+df = pandas_gbq.read_gbq(query, project_id="my_project")
+
+# Process DataFrame and write to CSV
+df_filtered = df[df["some_column"] > 0]
+csv_data = df_filtered.to_csv(index=False)
+
+# Upload CSV to S3 bucket
+bucket_name = "my_bucket"
+key = "path/to/my_file.csv"
+s3.put_object(Body=csv_data, Bucket=bucket_name, Key=key)
