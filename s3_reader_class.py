@@ -23,4 +23,19 @@ delimiter = ','
 
 df = s3_reader.read_csv_to_dataframe(file_key, delimiter)
 
+import pandas as pd
+import boto3
 
+class S3ParquetReader:
+    def __init__(self, bucket_name, aws_access_key_id=None, aws_secret_access_key=None):
+        self.bucket_name = bucket_name
+        self.s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+
+    def read_parquet(self, key):
+        response = self.s3.get_object(Bucket=self.bucket_name, Key=key)
+        body = response['Body']
+        df = pd.read_parquet(body)
+        return df
+    
+    s3_reader = S3ParquetReader(bucket_name='my-bucket', aws_access_key_id='my-access-key', aws_secret_access_key='my-secret-key')
+df = s3_reader.read_parquet('path/to/my/file.parquet')
